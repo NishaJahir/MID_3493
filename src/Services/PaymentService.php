@@ -276,19 +276,11 @@ class PaymentService
      * @param array $requestData
      * @return string
      */
-    public function getInvoicePrepaymentComments($requestData, $callback=false)
+    public function getInvoicePrepaymentComments($requestData)
     {
 	if ( in_array($requestData['tid_status'], ['91', '100']) ) {  
 	
 	$comments = '';	
-	if ($callback)	{
-		$comments .= PHP_EOL . $this->paymentHelper->getTranslatedText('nn_tid') . $requestData['tid'];
-	    
-        	if(!empty($requestData['test_mode'])) {
-            	$comments .= PHP_EOL . $this->paymentHelper->getTranslatedText('test_order');
-        	}
-	}
-		
         $comments .= PHP_EOL . PHP_EOL .$this->paymentHelper->getTranslatedText('transfer_amount_text');
         if(!empty($requestData['due_date']))
         {
