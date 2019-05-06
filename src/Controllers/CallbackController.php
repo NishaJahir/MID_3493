@@ -437,7 +437,7 @@ class CallbackController extends Controller
 								  'test_mode'	      => $this->aryCaptureParams['test_mode'],
 								  'invoice_account_holder' => $bankDetails->invoice_account_holder
 								];
-							$transactionDetails = $this->paymentService->getInvoicePrepaymentComments($invoicePrepaymentDetails, true);
+							$transactionDetails = $this->paymentService->getInvoicePrepaymentComments($invoicePrepaymentDetails);
 							
 						}
 						$this->paymentHelper->createOrderComments($nnTransactionHistory->orderNo, $callbackComments.'<br>'.$transactionDetails);
