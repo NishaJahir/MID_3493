@@ -430,23 +430,7 @@ class CallbackController extends Controller
 					// Checks Guaranteed Invoice
 						if( in_array ( $this->aryCaptureParams['payment_type'], [ 'GUARANTEED_INVOICE', 'INVOICE_START' ] ) ) {
 						    $paymentDetails = $this->payment_details($nnTransactionHistory->orderNo, true);
-							$bankDetails = json_decode($paymentDetails);
-							$invoicePrepaymentDetails =  [
-								  'invoice_bankname'  => $bankDetails->invoice_bankname,
-								  'invoice_bankplace' => $bankDetails->invoice_bankplace,
-								  'amount'            => $this->aryCaptureParams['amount'] / 100,
-								  'currency'          => $this->aryCaptureParams['currency'],
-								  'tid'               => $this->aryCaptureParams['tid'],
-								  'invoice_iban'      => $bankDetails->invoice_iban,
-								  'invoice_bic'       => $bankDetails->invoice_bic,
-								  'due_date'          => $this->aryCaptureParams['due_date'],
-								  'product'           => $this->aryCaptureParams['product_id'],
-								  'order_no'          => $nnTransactionHistory->orderNo,
-								  'tid_status'        => $this->aryCaptureParams['tid_status'],
-								  'invoice_type'      => 'INVOICE',
-								  'test_mode'	      => $this->aryCaptureParams['test_mode'],
-								  'invoice_account_holder' => $bankDetails->invoice_account_holder
-								];
+							
 							// Checking for Invoice Guarantee
 							
 							$callbackComments = '</br>' . sprintf($this->paymentHelper->getTranslatedText('callback_order_confirmation_text',$orderLanguage), date('d.m.Y'), date('H:i:s'));               			    
@@ -455,8 +439,7 @@ class CallbackController extends Controller
 							}	
 							
 							$this->paymentHelper->updateOrderStatus($nnTransactionHistory->orderNo, (float) $orderStatus);
-							$transactionDetails = $this->paymentService->getInvoicePrepaymentComments($invoicePrepaymentDetails, true);
-							$this->paymentHelper->createOrderComments($nnTransactionHistory->orderNo, $callbackComments.'</br>'.$transactionDetails );		            
+							$this->paymentHelper->createOrderComments($nnTransactionHistory->orderNo, $callbackComments);		            
 					} elseif ( in_array ( $this->aryCaptureParams['payment_type'], [ 'GUARANTEED_DIRECT_DEBIT_SEPA', 'DIRECT_DEBIT_SEPA' ] ) ) {
 							  
 								$callbackComments = '</br>' . sprintf($this->paymentHelper->getTranslatedText('callback_order_confirmation_text',$orderLanguage), $this->aryCaptureParams['tid'], date('d.m.Y'), date('H:i:s'));
@@ -474,7 +457,7 @@ class CallbackController extends Controller
 							$paymentData['mop']         = $nnTransactionHistory->mopId;
 							$this->paymentHelper->createPlentyPayment($paymentData);
 							}
-							$this->sendTransactionConfirmMail($transactionDetails, $nnTransactionHistory->orderNo); 
+							
 					} 
 					$this->paymentHelper->updatePayments($this->aryCaptureParams['tid'], $this->aryCaptureParams['tid_status'], $nnTransactionHistory->orderNo);
 					return $this->renderTemplate($callbackComments);
@@ -897,26 +880,5 @@ class CallbackController extends Controller
 				return $address_ref;
 	}
 	
-	/**
-	 * Send the transaction confirmation mail
-	 * 
-	 * @param string $mailContent
-	 * @param string $transactionDetails
-	 * @param int $order_no
-	 * 
-	 * @return null
-	 */
-	public function sendTransactionConfirmMail($transactionDetails, $order_no)
-	{	
-		$confirmation_text = $this->paymentHelper->getTranslatedText('confirmation_text');
-		$payment_info = $this->paymentHelper->getTranslatedText('payment_info');
-   	    $addresses = $this->addressObj($order_no);				
-		$toAddress  = $addresses->email;
-		$subject    = 'Bestellbestätigung – Ihre Bestellung' . ' ' .$order_no. ' ' .'bei Plentymarkets wurde bestätigt!';
-		$body = '<html><body style="background:#F6F6F6; font-family:Verdana, Arial, Helvetica, sans-serif; font-size:14px; margin:0; padding:0;"><div style="width:55%;height:auto;margin: 0 auto;background:rgb(247, 247, 247);border: 2px solid rgb(223, 216, 216);border-radius: 5px;box-shadow: 1px 7px 10px -2px #ccc;"><div style="min-height: 300px;padding:20px;"><b>Dear Mr./Ms./Mrs.</b>'.$addresses->name2 . ' ' . $addresses->name3.'<br><br>'.$confirmation_text.'<br><br><b>'.$payment_info.'</b><br>'.nl2br($transactionDetails).'</div><div style="width:100%;height:20px;background:#00669D;"></div></div></body></html>';
-		
-		$mailer = pluginApp(MailerContract::class);
-		$mailer->sendHtml($body, $toAddress, $subject);		
-	}
 	
 }
