@@ -278,7 +278,7 @@ class PaymentService
      */
     public function getInvoicePrepaymentComments($requestData, $callback=false)
     {
-	if ( in_array($requestData['tid_status'], ['91', '100']) {  
+	if ( in_array($requestData['tid_status'], ['91', '100']) ) {  
 	
 	$comments = '';	
 	if ($callback)	{
