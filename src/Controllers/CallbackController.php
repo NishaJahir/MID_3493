@@ -418,8 +418,29 @@ class CallbackController extends Controller
 					if(in_array($this->aryCaptureParams['tid_status'], ['91', '99']) && $transactionStatus == '75') {
 					   
 						$callbackComments = '</br>' . sprintf($this->paymentHelper->getTranslatedText('callback_pending_to_onhold_status_change',$orderLanguage), $this->aryCaptureParams['tid'], date('d.m.Y'), date('H:i:s'));
-						
-						$this->paymentHelper->createOrderComments($nnTransactionHistory->orderNo, $callbackComments);
+						if ($this->aryCaptureParams['tid_status'] == '91') {
+							$paymentDetails = $this->payment_details($nnTransactionHistory->orderNo, true);
+							$bankDetails = json_decode($paymentDetails);
+							$invoicePrepaymentDetails =  [
+								  'invoice_bankname'  => $bankDetails->invoice_bankname,
+								  'invoice_bankplace' => $bankDetails->invoice_bankplace,
+								  'amount'            => $this->aryCaptureParams['amount'] / 100,
+								  'currency'          => $this->aryCaptureParams['currency'],
+								  'tid'               => $this->aryCaptureParams['tid'],
+								  'invoice_iban'      => $bankDetails->invoice_iban,
+								  'invoice_bic'       => $bankDetails->invoice_bic,
+								  'due_date'          => $this->aryCaptureParams['due_date'],
+								  'product'           => $this->aryCaptureParams['product_id'],
+								  'order_no'          => $nnTransactionHistory->orderNo,
+								  'tid_status'        => $this->aryCaptureParams['tid_status'],
+								  'invoice_type'      => 'INVOICE',
+								  'test_mode'	      => $this->aryCaptureParams['test_mode'],
+								  'invoice_account_holder' => $bankDetails->invoice_account_holder
+								];
+							$transactionDetails = $this->paymentService->getInvoicePrepaymentComments($invoicePrepaymentDetails, true);
+							
+						}
+						$this->paymentHelper->createOrderComments($nnTransactionHistory->orderNo, $callbackComments.'<br>'.$transactionDetails);
 						$orderStatus = $this->config->get('Novalnet.novalnet_onhold_confirmation_status'); 
 						$this->paymentHelper->updateOrderStatus($nnTransactionHistory->orderNo, (float)$orderStatus);
 			
