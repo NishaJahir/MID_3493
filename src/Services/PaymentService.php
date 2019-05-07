@@ -201,7 +201,9 @@ class PaymentService
                 $requestData['order_status'] = trim($this->config->get('Novalnet.novalnet_order_cancel_status'));
                 $requestData['paid_amount'] = '0';
             }
-            $transactionComments = $this->getTransactionComments($requestData);
+            $customerComments = $this->sessionStorage->getPlugin()->getValue('customerWish');
+	    $this->sessionStorage->getPlugin()->setValue('customerWish', null);
+            $transactionComments = $customerComments . PHP_EOL . $this->getTransactionComments($requestData);
             $this->paymentHelper->createPlentyPayment($requestData);
             $this->paymentHelper->updateOrderStatus((int)$requestData['order_no'], $requestData['order_status']);
             $this->paymentHelper->createOrderComments((int)$requestData['order_no'], $transactionComments);
